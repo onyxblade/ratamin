@@ -2,11 +2,12 @@
 
 module Ratamin
   class App
-    attr_reader :data_source, :mode, :table_view, :form_view
+    attr_reader :data_source, :mode, :table_view, :form_state, :form_view
 
     def initialize(data_source)
       @data_source = data_source
       @table_view = TableView.new(data_source)
+      @form_state = nil
       @form_view = nil
       @mode = :table
     end
@@ -26,7 +27,6 @@ module Ratamin
     private
 
     def render(tui, frame)
-      # Status bar at bottom
       body_area, status_area = RatatuiRuby::Layout::Layout.split(
         frame.area,
         direction: :vertical,
@@ -97,15 +97,13 @@ module Ratamin
     end
 
     def handle_form_event(event)
-      result = @form_view.handle_event(event)
+      result = @form_state.handle_event(event)
       case result
       when :save
         save_form
-        @mode = :table
-        @form_view = nil
+        exit_form
       when :cancel
-        @mode = :table
-        @form_view = nil
+        exit_form
       when :editor
         open_editor
       end
@@ -116,23 +114,29 @@ module Ratamin
       row = @table_view.selected_row
       return unless row
 
-      @form_view = FormView.new(@data_source.columns, row)
+      @form_state = FormState.new(@data_source.columns, row)
+      @form_view = FormView.new(@form_state)
       @mode = :form
+    end
+
+    def exit_form
+      @mode = :table
+      @form_state = nil
+      @form_view = nil
     end
 
     def save_form
       idx = @table_view.selected_index
       return unless idx
-      @data_source.update_row(idx, @form_view.changes)
+      @data_source.update_row(idx, @form_state.changes)
     end
 
     def open_editor
-      col = @form_view.current_column
-      field_idx = @form_view.field_index
-      current_value = @form_view.values[field_idx]
+      field_idx = @form_state.field_index
+      current_value = @form_state.values[field_idx]
 
       edited = EditorBridge.edit(current_value)
-      @form_view.set_value(field_idx, edited.chomp)
+      @form_state.set_value(field_idx, edited.chomp)
     end
   end
 end
