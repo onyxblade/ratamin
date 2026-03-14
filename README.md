@@ -1,39 +1,109 @@
 # Ratamin
 
-TODO: Delete this and the text below, and describe your gem
+A TUI admin console for ActiveRecord, built on [ratatui_ruby](https://github.com/nicholasgasior/ratatui_ruby).
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/ratamin`. To experiment with that code, run `bin/console` for an interactive prompt.
+Give it a scope, get a navigable table with inline editing and `$EDITOR` support for long text.
 
 ## Installation
 
-TODO: Replace `UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG` with your gem name right after releasing it to RubyGems.org. Please do not do it earlier due to security reasons. Alternatively, replace this section with instructions to install your gem from git if you don't plan to release to RubyGems.org.
+Add to your Gemfile:
 
-Install the gem and add to the application's Gemfile by executing:
-
-```bash
-bundle add UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
-```
-
-If bundler is not being used to manage dependencies, install the gem by executing:
-
-```bash
-gem install UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+```ruby
+gem "ratamin"
 ```
 
 ## Usage
 
-TODO: Write usage instructions here
+### With ActiveRecord
+
+```ruby
+require "ratamin"
+
+# Edit all users
+Ratamin::App.new(Ratamin::ScopeDataSource.new(User.all)).run
+
+# Edit a filtered scope
+Ratamin::App.new(Ratamin::ScopeDataSource.new(User.where(role: "admin"))).run
+
+# Specify which columns to show
+columns = [
+  Ratamin::Column.new(key: :name, label: "Name", width: 20),
+  Ratamin::Column.new(key: :email, label: "Email", width: 30),
+  Ratamin::Column.new(key: :bio, label: "Bio", type: :text),
+]
+Ratamin::App.new(Ratamin::ScopeDataSource.new(User.all, columns: columns)).run
+```
+
+### Without ActiveRecord
+
+```ruby
+require "ratamin"
+
+columns = [
+  Ratamin::Column.new(key: :name, width: 20),
+  Ratamin::Column.new(key: :email, width: 30),
+]
+
+rows = [
+  { name: "Alice", email: "alice@example.com" },
+  { name: "Bob",   email: "bob@example.com" },
+]
+
+ds = Ratamin::ArrayDataSource.new(columns: columns, rows: rows)
+Ratamin::App.new(ds).run
+```
+
+## Keybindings
+
+### Table view
+
+| Key | Action |
+|-----|--------|
+| `j` / `Down` | Next row |
+| `k` / `Up` | Previous row |
+| `g` | First row |
+| `G` | Last row |
+| `Enter` | Edit selected record |
+| `r` | Reload data |
+| `q` | Quit |
+
+### Form view
+
+| Key | Action |
+|-----|--------|
+| `Tab` | Next field |
+| `Shift+Tab` | Previous field |
+| `Enter` | Save |
+| `Esc` | Cancel |
+| `e` | Open `$EDITOR` (on `:text` fields) |
+
+## Architecture
+
+Ratamin separates data, state, and rendering:
+
+- **DataSource** — duck-type protocol (`#columns`, `#rows`, `#update_row`, `#reload!`)
+  - `ArrayDataSource` — in-memory arrays
+  - `ScopeDataSource` — wraps an ActiveRecord scope
+- **State** — pure Ruby, no TUI dependency, fully unit-testable
+  - `FormState` — field values, cursor, text editing, validation errors
+- **Views** — thin renderers that read from state objects
+  - `TableView` — record list with selection
+  - `FormView` — field-by-field editor
+
+## Column types
+
+| Type | Behavior |
+|------|----------|
+| `:string` (default) | Inline text editing |
+| `:text` | Truncated in table, opens `$EDITOR` for editing |
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
-
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
-
-## Contributing
-
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/ratamin.
+```bash
+bin/setup
+bundle exec rspec
+```
 
 ## License
 
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+MIT
