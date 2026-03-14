@@ -37,7 +37,7 @@ module Ratamin
     end
 
     def reload!
-      @records = @scope.to_a
+      @records = @scope.reset.to_a
     end
 
     private
