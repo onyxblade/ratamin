@@ -77,7 +77,7 @@ module Ratamin
     def ordered_scope
       s = @scope.reset
       if s.order_values.empty?
-        s.order(s.klass.primary_key)
+        s.order(s.klass.arel_table[s.klass.primary_key])
       else
         s
       end

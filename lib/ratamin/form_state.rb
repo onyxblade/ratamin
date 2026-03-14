@@ -26,17 +26,28 @@ module Ratamin
     end
 
     def handle_event(event)
-      return nil unless current_column&.editable
-
+      # Enter/Esc always work, even when all fields are read-only.
       case event
-      in {type: :key, code: "tab", modifiers: []}
-        next_field
-      in {type: :key, code: "backtab"} | {type: :key, code: "tab", modifiers: ["shift"]}
-        prev_field
       in {type: :key, code: "enter"}
         return :save
       in {type: :key, code: "esc"}
         return :cancel
+      else
+        nil
+      end
+
+      case event
+      in {type: :key, code: "tab", modifiers: []}
+        return next_field
+      in {type: :key, code: "backtab"} | {type: :key, code: "tab", modifiers: ["shift"]}
+        return prev_field
+      else
+        nil
+      end
+
+      return nil unless current_column&.editable
+
+      case event
       in {type: :key, code: "e"} if current_column.type == :text
         return :editor
       in {type: :key, code: "backspace"}

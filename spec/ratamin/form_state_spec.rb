@@ -217,6 +217,32 @@ RSpec.describe Ratamin::FormState do
     end
   end
 
+  describe "all-readonly fields" do
+    let(:columns) do
+      [
+        Ratamin::Column.new(key: :id, editable: false),
+        Ratamin::Column.new(key: :created_at, editable: false)
+      ]
+    end
+
+    let(:row) { {id: "1", created_at: "2026-01-01"} }
+
+    subject(:state) { described_class.new(columns, row) }
+
+    it "returns :cancel on esc" do
+      expect(state.handle_event(key_event("esc"))).to eq(:cancel)
+    end
+
+    it "returns :save on enter" do
+      expect(state.handle_event(key_event("enter"))).to eq(:save)
+    end
+
+    it "ignores character input" do
+      expect(state.handle_event(key_event("a"))).to be_nil
+      expect(state.values).to eq(["1", "2026-01-01"])
+    end
+  end
+
   describe "errors" do
     it "starts with no errors" do
       expect(state.errors).to eq([])
