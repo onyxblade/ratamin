@@ -48,6 +48,11 @@ RSpec.describe Ratamin::ArrayDataSource do
       ds.update_row(0, {name: "Alicia"})
       expect(ds.rows[0][:bio]).to eq("Engineer")
     end
+
+    it "returns a successful UpdateResult" do
+      result = ds.update_row(0, {name: "Alicia"})
+      expect(result).to be_ok
+    end
   end
 
   describe "#reload!" do

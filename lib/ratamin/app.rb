@@ -101,7 +101,6 @@ module Ratamin
       case result
       when :save
         save_form
-        exit_form
       when :cancel
         exit_form
       when :editor
@@ -128,7 +127,13 @@ module Ratamin
     def save_form
       idx = @table_view.selected_index
       return unless idx
-      @data_source.update_row(idx, @form_state.changes)
+
+      result = @data_source.update_row(idx, @form_state.changes)
+      if result.ok?
+        exit_form
+      else
+        @form_state.set_errors(result.errors)
+      end
     end
 
     def open_editor

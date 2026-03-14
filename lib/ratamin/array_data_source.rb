@@ -19,6 +19,7 @@ module Ratamin
 
     def update_row(index, changes)
       changes.each { |k, v| @rows[index][k] = v }
+      UpdateResult.success
     end
 
     def reload!

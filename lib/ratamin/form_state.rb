@@ -2,13 +2,26 @@
 
 module Ratamin
   class FormState
-    attr_reader :columns, :values, :field_index, :cursor_positions
+    attr_reader :columns, :values, :field_index, :cursor_positions, :errors
 
     def initialize(columns, row)
       @columns = columns
       @values = columns.map { |col| row[col.key].to_s }
       @field_index = 0
       @cursor_positions = @values.map(&:length)
+      @errors = []
+    end
+
+    def errors?
+      !@errors.empty?
+    end
+
+    def set_errors(errors)
+      @errors = Array(errors)
+    end
+
+    def clear_errors
+      @errors = []
     end
 
     def handle_event(event)
