@@ -3,11 +3,22 @@
 module Ratamin
   # Duck-type protocol for data sources.
   # Implementations must respond to:
-  #   #columns -> [Column]
-  #   #rows    -> [Hash]  (each hash maps column key -> value)
-  #   #row_count -> Integer
-  #   #update_row(index, changes) -> void
-  #   #reload! -> void
+  #   #columns    -> [Column]
+  #   #rows       -> [Hash]  (current page of data)
+  #   #row_count  -> Integer
+  #   #update_row(index, changes) -> UpdateResult
+  #   #reload!    -> void
+  #
+  # Pagination (optional, when #paginated? returns true):
+  #   #page        -> Integer (1-indexed)
+  #   #total_count -> Integer
+  #   #total_pages -> Integer
+  #   #next_page   -> void
+  #   #prev_page   -> void
+  #   #go_to_page(n) -> void
   module DataSource
+    def paginated?
+      false
+    end
   end
 end

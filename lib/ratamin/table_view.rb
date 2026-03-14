@@ -28,7 +28,7 @@ module Ratamin
         row_highlight_style: {bg: :dark_gray, modifiers: [:bold]},
         highlight_symbol: "> ",
         block: tui.block(
-          title: " Records (#{data_source.row_count}) ",
+          title: " #{title_text} ",
           borders: [:all],
           border_type: :rounded,
           border_style: {fg: :cyan}
@@ -70,7 +70,20 @@ module Ratamin
       @table_state.select(max) if max >= 0
     end
 
+    def reset_selection
+      @table_state.select(0)
+    end
+
     private
+
+    def title_text
+      ds = data_source
+      if ds.paginated?
+        "Records (page #{ds.page}/#{ds.total_pages}, #{ds.total_count} total)"
+      else
+        "Records (#{ds.row_count})"
+      end
+    end
 
     def format_cell(value, column)
       text = value.to_s

@@ -99,4 +99,85 @@ RSpec.describe Ratamin::ScopeDataSource do
       expect(ds.row_count).to eq(4)
     end
   end
+
+  describe "pagination" do
+    before do
+      User.delete_all
+      10.times { |i| User.create!(name: "User #{i}", email: "user#{i}@example.com") }
+    end
+
+    subject(:ds) { described_class.new(User.all, per_page: 3) }
+
+    it "is paginated" do
+      expect(ds).to be_paginated
+    end
+
+    it "starts on page 1" do
+      expect(ds.page).to eq(1)
+    end
+
+    it "loads only per_page records" do
+      expect(ds.row_count).to eq(3)
+    end
+
+    it "reports total_count" do
+      expect(ds.total_count).to eq(10)
+    end
+
+    it "calculates total_pages" do
+      expect(ds.total_pages).to eq(4) # ceil(10/3)
+    end
+
+    it "navigates to next page" do
+      ds.next_page
+      expect(ds.page).to eq(2)
+      expect(ds.rows[0][:name]).to eq("User 3")
+    end
+
+    it "navigates to previous page" do
+      ds.next_page
+      ds.prev_page
+      expect(ds.page).to eq(1)
+    end
+
+    it "does not go below page 1" do
+      ds.prev_page
+      expect(ds.page).to eq(1)
+    end
+
+    it "does not go past last page" do
+      4.times { ds.next_page }
+      expect(ds.page).to eq(4)
+      ds.next_page
+      expect(ds.page).to eq(4)
+    end
+
+    it "last page may have fewer records" do
+      3.times { ds.next_page }
+      expect(ds.page).to eq(4)
+      expect(ds.row_count).to eq(1) # 10 - 3*3 = 1
+    end
+
+    it "go_to_page jumps directly" do
+      ds.go_to_page(3)
+      expect(ds.page).to eq(3)
+      expect(ds.rows[0][:name]).to eq("User 6")
+    end
+
+    it "clamps go_to_page to valid range" do
+      ds.go_to_page(99)
+      expect(ds.page).to eq(4)
+      ds.go_to_page(-1)
+      expect(ds.page).to eq(1)
+    end
+
+    it "updates page on reload when records are deleted" do
+      ds.go_to_page(4)
+      expect(ds.page).to eq(4)
+      User.where("name >= 'User 5'").delete_all # leaves 5 records
+      ds.reload!
+      expect(ds.total_count).to eq(5)
+      expect(ds.page).to eq(2) # clamped: ceil(5/3) = 2
+    end
+  end
 end

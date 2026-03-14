@@ -55,7 +55,9 @@ module Ratamin
     end
 
     def table_help
-      " q:quit  j/↓:down  k/↑:up  g:first  G:last  enter:edit  r:reload "
+      help = " q:quit  j/↓:down  k/↑:up  g:first  G:last  enter:edit  r:reload"
+      help += "  n:next page  p:prev page" if @data_source.paginated?
+      help + " "
     end
 
     def form_help
@@ -88,8 +90,17 @@ module Ratamin
       in {type: :key, code: "enter"}
         enter_form
         nil
+      in {type: :key, code: "n"} if @data_source.paginated?
+        @data_source.next_page
+        @table_view.reset_selection
+        nil
+      in {type: :key, code: "p"} if @data_source.paginated?
+        @data_source.prev_page
+        @table_view.reset_selection
+        nil
       in {type: :key, code: "r"}
         @data_source.reload!
+        @table_view.reset_selection
         nil
       else
         nil

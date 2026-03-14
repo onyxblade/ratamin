@@ -4,15 +4,42 @@ module Ratamin
   class ScopeDataSource
     include DataSource
 
-    attr_reader :columns
+    attr_reader :columns, :page, :per_page, :total_count
 
     # @param scope [ActiveRecord::Relation] the AR scope to display
     # @param columns [Array<Column>, nil] explicit columns, or nil to infer from model
-    def initialize(scope, columns: nil)
+    # @param per_page [Integer] records per page
+    def initialize(scope, columns: nil, per_page: 20)
       @scope = scope
       @columns = columns || infer_columns
+      @per_page = per_page
+      @page = 1
+      @total_count = 0
       @records = []
       reload!
+    end
+
+    def paginated?
+      true
+    end
+
+    def total_pages
+      [(@total_count.to_f / @per_page).ceil, 1].max
+    end
+
+    def next_page
+      go_to_page(@page + 1)
+    end
+
+    def prev_page
+      go_to_page(@page - 1)
+    end
+
+    def go_to_page(n)
+      n = [[1, n].max, total_pages].min
+      return if n == @page
+      @page = n
+      load_page
     end
 
     def rows
@@ -25,7 +52,6 @@ module Ratamin
 
     def update_row(index, changes)
       record = @records[index]
-      # Convert string keys/values from form back to appropriate types
       cast_changes = changes.transform_keys(&:to_s)
       record.assign_attributes(cast_changes)
 
@@ -37,10 +63,16 @@ module Ratamin
     end
 
     def reload!
-      @records = @scope.reset.to_a
+      @total_count = @scope.reset.count
+      @page = [[1, @page].max, total_pages].min
+      load_page
     end
 
     private
+
+    def load_page
+      @records = @scope.reset.limit(@per_page).offset((@page - 1) * @per_page).to_a
+    end
 
     def row_hash(record)
       columns.each_with_object({}) do |col, hash|
