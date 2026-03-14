@@ -3,6 +3,7 @@ PATH
   specs:
     ratamin (0.1.0)
       ratatui_ruby
+      zeitwerk (~> 2.6)
 
 GEM
   remote: https://rubygems.org/
@@ -58,6 +59,7 @@ GEM
     rspec-support (3.13.7)
     stringio (3.2.0)
     tsort (0.2.0)
+    zeitwerk (2.7.5)
 
 PLATFORMS
   arm64-darwin-24
@@ -97,6 +99,7 @@ CHECKSUMS
   rspec-support (3.13.7) sha256=0640e5570872aafefd79867901deeeeb40b0c9875a36b983d85f54fb7381c47c
   stringio (3.2.0) sha256=c37cb2e58b4ffbd33fe5cd948c05934af997b36e0b6ca6fdf43afa234cf222e1
   tsort (0.2.0) sha256=9650a793f6859a43b6641671278f79cfead60ac714148aabe4e3f0060480089f
+  zeitwerk (2.7.5) sha256=d8da92128c09ea6ec62c949011b00ed4a20242b255293dd66bf41545398f73dd
 
 BUNDLED WITH
   4.0.3
