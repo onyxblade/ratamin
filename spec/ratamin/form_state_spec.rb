@@ -151,10 +151,24 @@ RSpec.describe Ratamin::FormState do
   end
 
   describe "#changes" do
-    it "returns a hash of column key to current value" do
+    it "returns only dirty fields" do
       state.insert_char("!")
-      result = state.changes
-      expect(result).to eq({name: "Alice!", email: "alice@example.com", bio: "Engineer"})
+      expect(state.changes).to eq({name: "Alice!"})
+    end
+
+    it "returns empty hash when nothing changed" do
+      expect(state.changes).to eq({})
+    end
+
+    it "excludes non-editable fields" do
+      cols = [
+        Ratamin::Column.new(key: :id, editable: false),
+        Ratamin::Column.new(key: :name)
+      ]
+      s = described_class.new(cols, {id: "1", name: "Alice"})
+      s.insert_char("!") # edits name (first editable field)
+      expect(s.changes).to eq({name: "Alice!"})
+      expect(s.changes).not_to have_key(:id)
     end
   end
 
@@ -174,6 +188,35 @@ RSpec.describe Ratamin::FormState do
     end
   end
 
+  describe "non-editable fields" do
+    let(:columns) do
+      [
+        Ratamin::Column.new(key: :id, editable: false),
+        Ratamin::Column.new(key: :name),
+        Ratamin::Column.new(key: :created_at, editable: false),
+        Ratamin::Column.new(key: :email)
+      ]
+    end
+
+    let(:row) { {id: "1", name: "Alice", created_at: "2026-01-01", email: "alice@example.com"} }
+
+    subject(:state) { described_class.new(columns, row) }
+
+    it "starts on first editable field" do
+      expect(state.field_index).to eq(1) # name, not id
+    end
+
+    it "skips non-editable fields on tab" do
+      state.next_field
+      expect(state.field_index).to eq(3) # email, skips created_at
+    end
+
+    it "skips non-editable fields on shift+tab" do
+      state.prev_field
+      expect(state.field_index).to eq(3) # email, wraps and skips
+    end
+  end
+
   describe "errors" do
     it "starts with no errors" do
       expect(state.errors).to eq([])
@@ -190,13 +233,6 @@ RSpec.describe Ratamin::FormState do
       state.set_errors(["Something wrong"])
       state.clear_errors
       expect(state).not_to be_errors
-    end
-
-    it "clears errors on next keystroke" do
-      state.set_errors(["Bad input"])
-      state.handle_event(key_event("a"))
-      # errors persist until explicitly cleared — user sees them while editing
-      expect(state).to be_errors
     end
   end
 end

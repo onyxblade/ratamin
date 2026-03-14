@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     ratamin (0.1.0)
-      ratatui_ruby
+      ratatui_ruby (~> 1.4)
       zeitwerk (~> 2.6)
 
 GEM

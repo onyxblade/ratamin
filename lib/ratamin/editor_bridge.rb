@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "tempfile"
+require "shellwords"
 
 module Ratamin
   module EditorBridge
@@ -13,13 +14,18 @@ module Ratamin
       tmpfile.write(text)
       tmpfile.flush
 
-      # Restore terminal before launching editor
       RatatuiRuby.restore_terminal
 
-      system(editor, tmpfile.path)
+      # Use shell expansion so editors with arguments (e.g. "code --wait") work
+      success = system(*Shellwords.split(editor), tmpfile.path)
 
-      # Re-init terminal after editor closes
       RatatuiRuby.init_terminal
+
+      unless success
+        tmpfile.close
+        tmpfile.unlink
+        return text
+      end
 
       tmpfile.rewind
       result = tmpfile.read

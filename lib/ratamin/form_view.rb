@@ -63,21 +63,26 @@ module Ratamin
 
         active = i == state.field_index
 
-        label_style = active ? {fg: :yellow, modifiers: [:bold]} : {fg: :dark_gray}
-        frame.render_widget(tui.paragraph(text: "#{col.label}: ", style: label_style), label_area)
+        if col.editable
+          label_style = active ? {fg: :yellow, modifiers: [:bold]} : {fg: :dark_gray}
+          frame.render_widget(tui.paragraph(text: "#{col.label}: ", style: label_style), label_area)
 
-        display_value = if col.type == :text && state.values[i].length > 40
-          "[press 'e' to edit in $EDITOR]"
+          display_value = if col.type == :text && state.values[i].length > 40
+            "[press 'e' to edit in $EDITOR]"
+          else
+            state.values[i]
+          end
+
+          value_style = active ? {fg: :white, modifiers: [:underlined]} : {fg: :gray}
+          frame.render_widget(tui.paragraph(text: display_value, style: value_style), value_area)
+
+          if active && col.type != :text
+            cursor_x = value_area.x + [state.cursor_positions[i], value_area.width - 1].min
+            frame.set_cursor_position(cursor_x, value_area.y)
+          end
         else
-          state.values[i]
-        end
-
-        value_style = active ? {fg: :white, modifiers: [:underlined]} : {fg: :gray}
-        frame.render_widget(tui.paragraph(text: display_value, style: value_style), value_area)
-
-        if active && col.type != :text
-          cursor_x = value_area.x + [state.cursor_positions[i], value_area.width - 1].min
-          frame.set_cursor_position(cursor_x, value_area.y)
+          frame.render_widget(tui.paragraph(text: "#{col.label}: ", style: {fg: :dark_gray}), label_area)
+          frame.render_widget(tui.paragraph(text: state.values[i], style: {fg: :dark_gray, modifiers: [:dim]}), value_area)
         end
       end
 

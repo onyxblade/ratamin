@@ -7,7 +7,8 @@ module Ratamin
     def initialize(columns, row)
       @columns = columns
       @values = columns.map { |col| row[col.key].to_s }
-      @field_index = 0
+      @original_values = @values.dup
+      @field_index = first_editable_index || 0
       @cursor_positions = @values.map(&:length)
       @errors = []
     end
@@ -25,6 +26,8 @@ module Ratamin
     end
 
     def handle_event(event)
+      return nil unless current_column&.editable
+
       case event
       in {type: :key, code: "tab", modifiers: []}
         next_field
@@ -68,18 +71,31 @@ module Ratamin
       @cursor_positions[index] = @values[index].length
     end
 
+    # Returns only dirty editable fields.
     def changes
-      columns.each_with_object({}) do |col, result|
-        result[col.key] = @values[columns.index(col)]
+      result = {}
+      columns.each_with_index do |col, i|
+        next unless col.editable
+        next if @values[i] == @original_values[i]
+        result[col.key] = @values[i]
       end
+      result
     end
 
     def next_field
-      @field_index = (@field_index + 1) % columns.length
+      return unless any_editable?
+      loop do
+        @field_index = (@field_index + 1) % columns.length
+        break if current_column.editable
+      end
     end
 
     def prev_field
-      @field_index = (@field_index - 1) % columns.length
+      return unless any_editable?
+      loop do
+        @field_index = (@field_index - 1) % columns.length
+        break if current_column.editable
+      end
     end
 
     def insert_char(c)
@@ -111,6 +127,16 @@ module Ratamin
 
     def move_cursor_right
       @cursor_positions[@field_index] = [@values[@field_index].length, @cursor_positions[@field_index] + 1].min
+    end
+
+    private
+
+    def any_editable?
+      columns.any?(&:editable)
+    end
+
+    def first_editable_index
+      columns.index(&:editable)
     end
   end
 end

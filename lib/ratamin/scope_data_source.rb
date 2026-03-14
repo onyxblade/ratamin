@@ -71,7 +71,16 @@ module Ratamin
     private
 
     def load_page
-      @records = @scope.reset.limit(@per_page).offset((@page - 1) * @per_page).to_a
+      @records = ordered_scope.limit(@per_page).offset((@page - 1) * @per_page).to_a
+    end
+
+    def ordered_scope
+      s = @scope.reset
+      if s.order_values.empty?
+        s.order(s.klass.primary_key)
+      else
+        s
+      end
     end
 
     def row_hash(record)
@@ -80,6 +89,8 @@ module Ratamin
       end
     end
 
+    READONLY_COLUMNS = %w[id created_at updated_at].freeze
+
     def infer_columns
       model = @scope.klass
       model.column_names.map do |name|
@@ -87,7 +98,8 @@ module Ratamin
         Column.new(
           key: name.to_sym,
           type: map_ar_type(col.type),
-          width: guess_width(name, col.type)
+          width: guess_width(name, col.type),
+          editable: !READONLY_COLUMNS.include?(name)
         )
       end
     end

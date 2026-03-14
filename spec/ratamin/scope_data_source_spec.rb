@@ -32,6 +32,23 @@ RSpec.describe Ratamin::ScopeDataSource do
       expect(ds.row_count).to eq(3)
       expect(ds.rows[0][:name]).to eq("Alice")
     end
+
+    it "marks id as non-editable" do
+      id_col = ds.columns.find { |c| c.key == :id }
+      expect(id_col.editable).to be false
+    end
+
+    it "marks timestamps as non-editable" do
+      %i[created_at updated_at].each do |key|
+        col = ds.columns.find { |c| c.key == key }
+        expect(col.editable).to be(false), "expected #{key} to be non-editable"
+      end
+    end
+
+    it "marks regular columns as editable" do
+      name_col = ds.columns.find { |c| c.key == :name }
+      expect(name_col.editable).to be true
+    end
   end
 
   describe "with explicit columns" do
