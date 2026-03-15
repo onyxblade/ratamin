@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    ratamin (0.1.0)
+    ratamin (0.2.0)
       ratatui_ruby (~> 1.4)
       zeitwerk (~> 2.6)
 
@@ -135,7 +135,7 @@ CHECKSUMS
   psych (5.3.1) sha256=eb7a57cef10c9d70173ff74e739d843ac3b2c019a003de48447b2963d81b1974
   rake (13.3.1) sha256=8c9e89d09f66a26a01264e7e3480ec0607f0c497a861ef16063604b1b08eb19c
   rake-compiler-dock (1.11.0) sha256=eab51f2cd533eb35cea6b624a75281f047123e70a64c58b607471bb49428f8c2
-  ratamin (0.1.0)
+  ratamin (0.2.0)
   ratatui_ruby (1.4.2) sha256=cab36c0b2e71e40cc70ab24e0da0b16308be8fe72651fdb2f4bfea9bdd8026e9
   ratatui_ruby (1.4.2-arm64-darwin-24) sha256=763c5e84ce15f0e2a6176d38e863aad50e76bfd9eeb0f9a9033254c69a7e6d56
   ratatui_ruby (1.4.2-x86_64-linux) sha256=dccd5fbc309a973119cfd16a3245746df763a1d20d0d29bcef757d47fce9d810

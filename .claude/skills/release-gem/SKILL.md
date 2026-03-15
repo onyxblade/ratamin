@@ -8,27 +8,29 @@ Release the gem. If $ARGUMENTS is provided, that is the new version number. Othe
 
 Steps:
 
-1. **Confirm version**: Read `lib/ratamin/version.rb`. If $ARGUMENTS differs from the current version, update the file and commit the change.
+1. **Confirm version**: Read `lib/ratamin/version.rb`. If $ARGUMENTS differs from the current version, update the file.
 
-2. **Run tests**: `bundle exec rspec` — abort if any tests fail.
+2. **Bundle**: Run `bundle` to update `Gemfile.lock` with the new version, then commit `lib/ratamin/version.rb` and `Gemfile.lock` together.
 
-3. **Update CHANGELOG.md**: Add a new section for this version at the top (below the `## [Unreleased]` header if present), using Keep a Changelog format:
+3. **Run tests**: `bundle exec rspec` — abort if any tests fail.
+
+4. **Update CHANGELOG.md**: Add a new section for this version at the top (below the `## [Unreleased]` header if present), using Keep a Changelog format:
    ```
    ## [X.Y.Z] - YYYY-MM-DD
    ### Added / Changed / Fixed
    - ...
    ```
-   Ask the user what to put in the changelog if there is nothing obvious from recent commits. Commit the changelog update together with any version bump.
+   Ask the user what to put in the changelog if there is nothing obvious from recent commits. Commit the changelog update.
 
-4. **Build the gem**: `gem build ratamin.gemspec`
+5. **Build the gem**: `gem build ratamin.gemspec`
 
-5. **Push to RubyGems**: `gem push ratamin-X.Y.Z.gem`
+6. **Push to RubyGems**: `gem push ratamin-X.Y.Z.gem`
 
-6. **Create git tag**: `git tag vX.Y.Z`
+7. **Create git tag**: `git tag vX.Y.Z`
 
-7. **Push commits and tag**: `git push origin main --tags`
+8. **Push commits and tag**: `git push origin main --tags`
 
-8. **Create GitHub Release**: Extract the release notes for this version from CHANGELOG.md and run:
+9. **Create GitHub Release**: Extract the release notes for this version from CHANGELOG.md and run:
    ```
    gh release create vX.Y.Z --title "vX.Y.Z" --notes-file <(extracted notes)
    ```
