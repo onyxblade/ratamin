@@ -52,6 +52,17 @@ RSpec.describe Ratamin::FormState do
       state.handle_event(key_event("backtab"))
       expect(state.field_index).to eq(2)
     end
+
+    it "moves to next field with down arrow" do
+      state.handle_event(key_event("down"))
+      expect(state.field_index).to eq(1)
+    end
+
+    it "moves to previous field with up arrow" do
+      state.handle_event(key_event("down"))
+      state.handle_event(key_event("up"))
+      expect(state.field_index).to eq(0)
+    end
   end
 
   describe "text editing" do
@@ -135,12 +146,16 @@ RSpec.describe Ratamin::FormState do
       expect(state.handle_event(key_event("esc"))).to eq(:cancel)
     end
 
-    it "returns :editor on 'e' for text fields" do
-      2.times { state.next_field } # navigate to bio (type: :text)
-      expect(state.handle_event(key_event("e"))).to eq(:editor)
+    it "returns :editor on Ctrl+E for any field" do
+      expect(state.handle_event(key_event("e", modifiers: ["ctrl"]))).to eq(:editor)
     end
 
-    it "inserts 'e' on non-text fields" do
+    it "returns :editor on Ctrl+E for text fields too" do
+      2.times { state.next_field } # navigate to bio (type: :text)
+      expect(state.handle_event(key_event("e", modifiers: ["ctrl"]))).to eq(:editor)
+    end
+
+    it "inserts 'e' without ctrl modifier" do
       state.handle_event(key_event("e"))
       expect(state.values[0]).to eq("Alicee")
     end

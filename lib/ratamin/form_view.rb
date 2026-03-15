@@ -68,7 +68,7 @@ module Ratamin
           frame.render_widget(tui.paragraph(text: "#{col.label}: ", style: label_style), label_area)
 
           display_value = if col.type == :text && state.values[i].length > 40
-            "[press 'e' to edit in $EDITOR]"
+            "[Ctrl+E to edit in $EDITOR]"
           else
             state.values[i]
           end
@@ -76,7 +76,7 @@ module Ratamin
           value_style = active ? {fg: :white, modifiers: [:underlined]} : {fg: :gray}
           frame.render_widget(tui.paragraph(text: display_value, style: value_style), value_area)
 
-          if active && col.type != :text
+          if active && !(col.type == :text && state.values[i].length > 40)
             cursor_x = value_area.x + [state.cursor_positions[i], value_area.width - 1].min
             frame.set_cursor_position(cursor_x, value_area.y)
           end
@@ -88,7 +88,7 @@ module Ratamin
 
       help_area = regions[region_idx + columns.length]
       help = tui.paragraph(
-        text: " Tab:next  Shift+Tab:prev  Enter:save  Esc:cancel  e:editor(text) ",
+        text: " ↑↓/Tab:navigate  Enter:save  Esc:cancel  Ctrl+E:editor ",
         style: {fg: :dark_gray}
       )
       frame.render_widget(help, help_area)

@@ -41,6 +41,10 @@ module Ratamin
         return next_field
       in {type: :key, code: "backtab"} | {type: :key, code: "tab", modifiers: ["shift"]}
         return prev_field
+      in {type: :key, code: "down"}
+        return next_field
+      in {type: :key, code: "up"}
+        return prev_field
       else
         nil
       end
@@ -48,7 +52,7 @@ module Ratamin
       return nil unless current_column&.editable
 
       case event
-      in {type: :key, code: "e"} if current_column.type == :text
+      in {type: :key, code: "e", modifiers: ["ctrl"]}
         return :editor
       in {type: :key, code: "backspace"}
         handle_backspace
