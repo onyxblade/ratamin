@@ -45,21 +45,28 @@ RSpec.describe Ratamin::FormState do
       expect(state.mode).to eq(:edit)
     end
 
-    it "enters edit mode on i" do
-      state.handle_event(key_event("i"))
+    it "enters edit mode on l" do
+      state.handle_event(key_event("l"))
       expect(state.mode).to eq(:edit)
     end
 
-    it "returns to select mode on Esc from edit" do
+    it "returns to select mode on Esc from edit and discards changes" do
       enter_edit_mode
+      state.handle_event(key_event("x"))
+      state.handle_event(key_event("y"))
+      expect(state.current_value).to eq("Alicexy")
       state.handle_event(key_event("esc"))
       expect(state.mode).to eq(:select)
+      expect(state.current_value).to eq("Alice")
     end
 
-    it "returns to select mode and advances field on Enter from edit" do
+    it "returns to select mode and advances field on Enter from edit, keeping changes" do
       enter_edit_mode
+      state.handle_event(key_event("!"))
+      expect(state.current_value).to eq("Alice!")
       state.handle_event(key_event("enter"))
       expect(state.mode).to eq(:select)
+      expect(state.values[0]).to eq("Alice!")
       expect(state.field_index).to eq(1)
     end
 

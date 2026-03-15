@@ -105,14 +105,14 @@ module Ratamin
 
     def handle_select_event(event)
       case event
-      in {type: :key, code: "esc"}
+      in {type: :key, code: "esc"} | {type: :key, code: "h", modifiers: []}
         return :cancel
       in {type: :key, code: "s", modifiers: []}
         return :save
       in {type: :key, code: "e", modifiers: ["ctrl"]}
         return :editor if current_column&.editable
-      in {type: :key, code: "enter"} | {type: :key, code: "i", modifiers: []}
-        @mode = :edit if current_column&.editable
+      in {type: :key, code: "enter"} | {type: :key, code: "l", modifiers: []}
+        enter_edit_mode
       in {type: :key, code: "j", modifiers: []} | {type: :key, code: "down"}
         next_field
       in {type: :key, code: "k", modifiers: []} | {type: :key, code: "up"}
@@ -129,7 +129,7 @@ module Ratamin
     def handle_edit_event(event)
       case event
       in {type: :key, code: "esc"}
-        @mode = :select
+        discard_edit
       in {type: :key, code: "enter"}
         @mode = :select
         next_field
@@ -152,6 +152,20 @@ module Ratamin
       else
         nil
       end
+    end
+
+    def enter_edit_mode
+      return unless current_column&.editable
+      @edit_snapshot = [@values[@field_index].dup, @cursor_positions[@field_index]]
+      @mode = :edit
+    end
+
+    def discard_edit
+      if @edit_snapshot
+        @values[@field_index], @cursor_positions[@field_index] = @edit_snapshot
+        @edit_snapshot = nil
+      end
+      @mode = :select
     end
 
     def any_editable?

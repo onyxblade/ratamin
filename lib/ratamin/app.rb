@@ -57,8 +57,8 @@ module Ratamin
     end
 
     def table_help
-      help = " q:quit  j/↓:down  k/↑:up  g:first  G:last  enter:edit  r:reload"
-      help += "  n:next page  p:prev page" if @data_source.paginated?
+      help = " Esc/q:quit  j/↓:down  k/↑:up  g:first  G:last  l/Enter:edit  r:reload"
+      help += "  PgDn:next  PgUp:prev" if @data_source.paginated?
       help + " "
     end
 
@@ -66,7 +66,7 @@ module Ratamin
       if @form_state&.mode == :edit
         " Esc:exit edit  Enter:confirm+next "
       else
-        " s:save  Esc:cancel  j/k:navigate  Enter/i:edit  Ctrl+E:editor "
+        " s:save  h/Esc:back  j/k:navigate  l/Enter:edit  Ctrl+E:editor "
       end
     end
 
@@ -79,7 +79,7 @@ module Ratamin
 
     def handle_table_event(event)
       case event
-      in {type: :key, code: "q"} | {type: :key, code: "c", modifiers: ["ctrl"]}
+      in {type: :key, code: "q"} | {type: :key, code: "esc"} | {type: :key, code: "c", modifiers: ["ctrl"]}
         :quit
       in {type: :key, code: "j"} | {type: :key, code: "down"}
         @table_view.select_next
@@ -93,14 +93,14 @@ module Ratamin
       in {type: :key, code: "G"} | {type: :key, code: "g", modifiers: ["shift"]}
         @table_view.select_last
         nil
-      in {type: :key, code: "enter"}
+      in {type: :key, code: "enter"} | {type: :key, code: "l"}
         enter_form
         nil
-      in {type: :key, code: "n"} if @data_source.paginated?
+      in {type: :key, code: "page_down"} if @data_source.paginated?
         @data_source.next_page
         @table_view.reset_selection
         nil
-      in {type: :key, code: "p"} if @data_source.paginated?
+      in {type: :key, code: "page_up"} if @data_source.paginated?
         @data_source.prev_page
         @table_view.reset_selection
         nil

@@ -3,7 +3,7 @@
 RSpec.describe Ratamin::Column do
   it "uses key as default label" do
     col = described_class.new(key: :name)
-    expect(col.label).to eq("Name")
+    expect(col.label).to eq("name")
   end
 
   it "accepts custom label" do
