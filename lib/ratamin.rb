@@ -9,3 +9,5 @@ loader.setup
 module Ratamin
   class Error < StandardError; end
 end
+
+require "ratamin/railtie" if defined?(Rails::Railtie)

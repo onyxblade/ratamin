@@ -14,16 +14,9 @@ gem "ratamin"
 
 ## Usage
 
-### Rails integration (recommended)
+### Rails integration (automatic)
 
-Add the Railtie to an initializer to unlock `Model.ratamin` and `scope.ratamin` across your entire app:
-
-```ruby
-# config/initializers/ratamin.rb
-require "ratamin/railtie"
-```
-
-Then define which columns to show in your model:
+In a Rails app, `Model.ratamin` and `scope.ratamin` are available automatically — no configuration needed. Just add the gem and define which columns to show in your model:
 
 ```ruby
 class User < ApplicationRecord
@@ -44,7 +37,7 @@ User.where(role: "admin").ratamin      # filtered scope
 
 Column type (`:text` vs `:string`) and editability (`id`, `created_at`, `updated_at` are read-only by default) are inferred from the schema. Any option explicitly passed to `column` overrides the inferred default.
 
-Without the Railtie, `scope.ratamin` is unavailable. You can still call `User.ratamin` after manually including `Ratamin::ModelMixin` in the model.
+To opt out of the Rails integration, use `require: false` in your Gemfile and `require "ratamin"` manually — `scope.ratamin` will then be unavailable, but the core API still works.
 
 ### Manual usage (without Railtie)
 
