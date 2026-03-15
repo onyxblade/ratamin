@@ -88,6 +88,22 @@ RSpec.describe Ratamin::ScopeDataSource do
       expect(col.editable).to be false
     end
 
+    it "explicit editable: true overrides schema readonly default" do
+      User.has_ratamin do
+        column :created_at, editable: true
+      end
+      col = described_class.new(User.all).columns.find { |c| c.key == :created_at }
+      expect(col.editable).to be true
+    end
+
+    it "explicit type: :string overrides schema :text default" do
+      User.has_ratamin do
+        column :bio, type: :string
+      end
+      col = described_class.new(User.all).columns.find { |c| c.key == :bio }
+      expect(col.type).to eq(:string)
+    end
+
     it "falls back to infer when config is absent" do
       User.instance_variable_set(:@ratamin_config, nil)
       ds2 = described_class.new(User.all)
