@@ -58,9 +58,12 @@ module Ratamin
       if record.save
         UpdateResult.success
       else
-        UpdateResult.failure(record.errors.full_messages)
+        errors = record.errors.full_messages
+        record.reload
+        UpdateResult.failure(errors)
       end
     rescue => e
+      record&.reload rescue nil
       UpdateResult.failure("#{e.class}: #{e.message}")
     end
 

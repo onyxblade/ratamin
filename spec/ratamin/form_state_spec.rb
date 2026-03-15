@@ -239,6 +239,58 @@ RSpec.describe Ratamin::FormState do
     end
   end
 
+  describe "confirm exit dialog" do
+    before do
+      enter_edit_mode
+      state.handle_event(key_event("!"))
+      state.handle_event(key_event("enter")) # confirm edit, now dirty
+    end
+
+    it "shows confirm dialog on Esc when dirty" do
+      state.handle_event(key_event("esc"))
+      expect(state.mode).to eq(:confirm_exit)
+    end
+
+    it "skips confirm dialog on Esc when clean" do
+      clean_state = described_class.new(columns, row)
+      result = clean_state.handle_event(key_event("esc"))
+      expect(result).to eq(:cancel)
+      expect(clean_state.mode).to eq(:select)
+    end
+
+    it "defaults to Save selected" do
+      state.handle_event(key_event("esc"))
+      expect(state.confirm_selection).to eq(0)
+    end
+
+    it "toggles selection with arrow keys" do
+      state.handle_event(key_event("esc"))
+      state.handle_event(key_event("right"))
+      expect(state.confirm_selection).to eq(1)
+      state.handle_event(key_event("left"))
+      expect(state.confirm_selection).to eq(0)
+    end
+
+    it "returns :save on Enter when Save is selected" do
+      state.handle_event(key_event("esc"))
+      result = state.handle_event(key_event("enter"))
+      expect(result).to eq(:save)
+    end
+
+    it "returns :cancel on Enter when Discard is selected" do
+      state.handle_event(key_event("esc"))
+      state.handle_event(key_event("right"))
+      result = state.handle_event(key_event("enter"))
+      expect(result).to eq(:cancel)
+    end
+
+    it "returns to select mode on Esc" do
+      state.handle_event(key_event("esc"))
+      state.handle_event(key_event("esc"))
+      expect(state.mode).to eq(:select)
+    end
+  end
+
   describe "#changes" do
     it "returns only dirty fields" do
       state.insert_char("!")

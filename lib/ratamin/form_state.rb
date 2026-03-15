@@ -2,7 +2,7 @@
 
 module Ratamin
   class FormState
-    attr_reader :columns, :values, :field_index, :cursor_positions, :errors, :mode
+    attr_reader :columns, :values, :field_index, :cursor_positions, :errors, :mode, :confirm_selection
 
     def initialize(columns, row)
       @columns = columns
@@ -26,8 +26,20 @@ module Ratamin
       @errors = []
     end
 
+    def reset_mode
+      @mode = :select
+    end
+
+    def dirty?
+      changes.any?
+    end
+
     def handle_event(event)
-      @mode == :select ? handle_select_event(event) : handle_edit_event(event)
+      case @mode
+      when :select then handle_select_event(event)
+      when :edit then handle_edit_event(event)
+      when :confirm_exit then handle_confirm_exit_event(event)
+      end
     end
 
     def current_column
@@ -106,7 +118,12 @@ module Ratamin
     def handle_select_event(event)
       case event
       in {type: :key, code: "esc"} | {type: :key, code: "h", modifiers: []}
-        return :cancel
+        if dirty?
+          @confirm_selection = 0
+          @mode = :confirm_exit
+        else
+          return :cancel
+        end
       in {type: :key, code: "s", modifiers: []}
         return :save
       in {type: :key, code: "e", modifiers: ["ctrl"]}
@@ -148,6 +165,23 @@ module Ratamin
         @cursor_positions[@field_index] = @values[@field_index].length
       in {type: :key, code: c, modifiers: []} if c.length == 1
         insert_char(c)
+      else
+        nil
+      end
+    end
+
+    def handle_confirm_exit_event(event)
+      case event
+      in {type: :key, code: "enter"}
+        @confirm_selection == 0 ? :save : :cancel
+      in {type: :key, code: "h", modifiers: []} | {type: :key, code: "left"} |
+         {type: :key, code: "l", modifiers: []} | {type: :key, code: "right"} |
+         {type: :key, code: "tab"}
+        @confirm_selection = 1 - @confirm_selection
+        nil
+      in {type: :key, code: "esc"}
+        @mode = :select
+        nil
       else
         nil
       end

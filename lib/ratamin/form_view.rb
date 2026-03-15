@@ -93,6 +93,66 @@ module Ratamin
         " s:save  h/Esc:back  j/k:navigate  l/Enter:edit  Ctrl+E:editor "
       end
       frame.render_widget(tui.paragraph(text: help_text, style: {fg: :dark_gray}), help_area)
+
+      render_confirm_dialog(tui, frame, area) if state.mode == :confirm_exit
+    end
+
+    private
+
+    def render_confirm_dialog(tui, frame, area)
+      # Clear overlay area
+      dialog_w = [36, area.width - 4].min
+      dialog_h = 5
+      dialog_x = area.x + (area.width - dialog_w) / 2
+      dialog_y = area.y + (area.height - dialog_h) / 2
+
+      dialog_area = RatatuiRuby::Layout::Rect.new(x: dialog_x, y: dialog_y, width: dialog_w, height: dialog_h)
+      frame.render_widget(tui.clear, dialog_area)
+
+      dialog_block = tui.block(
+        title: " Unsaved changes ",
+        borders: [:all],
+        border_type: :rounded,
+        border_style: {fg: :yellow}
+      )
+      inner = dialog_block.inner(dialog_area)
+      frame.render_widget(dialog_block, dialog_area)
+
+      # Prompt line
+      prompt_area, buttons_area = RatatuiRuby::Layout::Layout.split(
+        inner,
+        direction: :vertical,
+        constraints: [
+          RatatuiRuby::Layout::Constraint.length(1),
+          RatatuiRuby::Layout::Constraint.fill(1)
+        ]
+      )
+
+      frame.render_widget(
+        tui.paragraph(text: "Save changes before leaving?", style: {fg: :white}),
+        prompt_area
+      )
+
+      # Buttons
+      sel = state.confirm_selection
+      save_style = sel == 0 ? {fg: :black, bg: :yellow, modifiers: [:bold]} : {fg: :dark_gray}
+      discard_style = sel == 1 ? {fg: :black, bg: :yellow, modifiers: [:bold]} : {fg: :dark_gray}
+
+      save_label = sel == 0 ? " [Save] " : "  Save  "
+      discard_label = sel == 1 ? " [Discard] " : "  Discard  "
+
+      btn_save, btn_discard, _ = RatatuiRuby::Layout::Layout.split(
+        buttons_area,
+        direction: :horizontal,
+        constraints: [
+          RatatuiRuby::Layout::Constraint.length(save_label.length),
+          RatatuiRuby::Layout::Constraint.length(discard_label.length),
+          RatatuiRuby::Layout::Constraint.fill(1)
+        ]
+      )
+
+      frame.render_widget(tui.paragraph(text: save_label, style: save_style), btn_save)
+      frame.render_widget(tui.paragraph(text: discard_label, style: discard_style), btn_discard)
     end
   end
 end
