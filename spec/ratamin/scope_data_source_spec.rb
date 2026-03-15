@@ -56,7 +56,8 @@ RSpec.describe Ratamin::ScopeDataSource do
       User.include(Ratamin::ModelMixin)
       User.has_ratamin do
         column :name, label: "Full Name", width: 20
-        column :email, width: 30
+        column :bio
+        column :created_at
       end
       example.run
       User.instance_variable_set(:@ratamin_config, nil)
@@ -65,22 +66,38 @@ RSpec.describe Ratamin::ScopeDataSource do
     subject(:ds) { described_class.new(User.all) }
 
     it "uses columns from model config" do
-      expect(ds.columns.map(&:key)).to eq(%i[name email])
+      expect(ds.columns.map(&:key)).to eq(%i[name bio created_at])
     end
 
-    it "respects label from config" do
+    it "respects label override from config" do
       col = ds.columns.find { |c| c.key == :name }
       expect(col.label).to eq("Full Name")
     end
 
     it "only includes configured columns in rows" do
-      expect(ds.rows[0].keys).to eq(%i[name email])
+      expect(ds.rows[0].keys).to eq(%i[name bio created_at])
+    end
+
+    it "inherits type from schema (text column stays :text)" do
+      col = ds.columns.find { |c| c.key == :bio }
+      expect(col.type).to eq(:text)
+    end
+
+    it "inherits editable: false for readonly schema columns" do
+      col = ds.columns.find { |c| c.key == :created_at }
+      expect(col.editable).to be false
     end
 
     it "falls back to infer when config is absent" do
       User.instance_variable_set(:@ratamin_config, nil)
       ds2 = described_class.new(User.all)
       expect(ds2.columns.map(&:key)).to include(:id, :name, :email, :bio)
+    end
+
+    it "does not cause stack overflow when User.ratamin is called without Railtie" do
+      app_double = instance_double(Ratamin::App, run: nil)
+      allow(Ratamin::App).to receive(:new).and_return(app_double)
+      expect { User.ratamin }.not_to raise_error
     end
   end
 

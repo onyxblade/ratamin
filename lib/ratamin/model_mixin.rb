@@ -30,7 +30,8 @@ module Ratamin
       #   User.ratamin
       #
       def ratamin
-        all.order(arel_table[primary_key].desc).ratamin
+        scope = all.order(arel_table[primary_key].desc)
+        App.new(ScopeDataSource.new(scope)).run
       end
     end
   end

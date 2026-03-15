@@ -93,18 +93,26 @@ module Ratamin
 
     def infer_columns
       model = @scope.klass
+      schema_defaults = build_schema_defaults(model)
+
       if model.respond_to?(:ratamin_config) && (config = model.ratamin_config)
-        return config.columns
+        return config.column_specs.map do |spec|
+          Column.new(**schema_defaults.fetch(spec[:key], {}).merge(spec))
+        end
       end
 
-      model.column_names.map do |name|
+      schema_defaults.values.map { |attrs| Column.new(**attrs) }
+    end
+
+    def build_schema_defaults(model)
+      model.column_names.each_with_object({}) do |name, hash|
         col = model.columns_hash[name]
-        Column.new(
+        hash[name.to_sym] = {
           key: name.to_sym,
           type: map_ar_type(col.type),
           width: guess_width(name, col.type),
           editable: !READONLY_COLUMNS.include?(name)
-        )
+        }
       end
     end
 

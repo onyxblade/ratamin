@@ -2,14 +2,16 @@
 
 module Ratamin
   class ModelConfig
-    attr_reader :columns
+    attr_reader :column_specs
 
     def initialize
-      @columns = []
+      @column_specs = []
     end
 
-    def column(key, **options)
-      @columns << Column.new(key: key, **options)
+    # Stores only the explicitly provided overrides; schema defaults are applied
+    # later by ScopeDataSource when it merges with AR column metadata.
+    def column(key, **overrides)
+      @column_specs << {key: key.to_sym, **overrides}
     end
   end
 end
