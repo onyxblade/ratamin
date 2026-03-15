@@ -97,10 +97,6 @@ module Ratamin
     end
 
     def compute_widths(columns, available_width)
-      # Reserve space for borders (2) + highlight symbol (2) + column spacing
-      usable = available_width - 4
-      total_spacing = [columns.length - 1, 0].max
-
       columns.map do |col|
         if col.width
           RatatuiRuby::Layout::Constraint.length(col.width)

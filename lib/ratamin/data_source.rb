@@ -7,6 +7,7 @@ module Ratamin
   #   #rows       -> [Hash]  (current page of data)
   #   #row_count  -> Integer
   #   #update_row(index, changes) -> UpdateResult
+  #   #create_row(attributes) -> UpdateResult
   #   #reload!    -> void
   #
   # Pagination (optional, when #paginated? returns true):

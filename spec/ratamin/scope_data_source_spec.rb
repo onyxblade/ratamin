@@ -179,6 +179,34 @@ RSpec.describe Ratamin::ScopeDataSource do
     end
   end
 
+  describe "#create_row" do
+    subject(:ds) { described_class.new(User.all) }
+
+    it "creates a new record and returns success" do
+      result = ds.create_row({name: "Diana", email: "diana@example.com"})
+      expect(result).to be_ok
+      expect(User.find_by(name: "Diana")).not_to be_nil
+    end
+
+    it "returns failure with errors on invalid attributes" do
+      result = ds.create_row({name: "", email: "bad"})
+      expect(result).to be_failed
+      expect(result.errors).to include(match(/Name/))
+    end
+
+    it "does not persist invalid records" do
+      ds.create_row({name: ""})
+      expect(User.count).to eq(3)
+    end
+
+    it "returns failure with exception message on unexpected error" do
+      allow_any_instance_of(User).to receive(:save).and_raise(ActiveRecord::StatementInvalid, "PG::Error")
+      result = ds.create_row({name: "Diana"})
+      expect(result).to be_failed
+      expect(result.errors).to include(match(/StatementInvalid/))
+    end
+  end
+
   describe "#reload!" do
     subject(:ds) { described_class.new(User.all) }
 

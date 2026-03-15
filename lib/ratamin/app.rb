@@ -9,6 +9,7 @@ module Ratamin
       @table_view = TableView.new(data_source)
       @form_state = nil
       @form_view = nil
+      @form_action = nil
       @mode = :table
     end
 
@@ -57,7 +58,7 @@ module Ratamin
     end
 
     def table_help
-      help = " Esc/q:quit  j/↓:down  k/↑:up  g:first  G:last  l/Enter:edit  r:reload"
+      help = " Esc/q:quit  j/↓:down  k/↑:up  g:first  G:last  l/Enter:edit  n:new  r:reload"
       help += "  PgDn:next  PgUp:prev" if @data_source.paginated?
       help + " "
     end
@@ -99,6 +100,9 @@ module Ratamin
       in {type: :key, code: "enter"} | {type: :key, code: "l"}
         enter_form
         nil
+      in {type: :key, code: "n"}
+        enter_new_form
+        nil
       in {type: :key, code: "page_down"} if @data_source.paginated?
         @data_source.next_page
         @table_view.reset_selection
@@ -135,6 +139,15 @@ module Ratamin
 
       @form_state = FormState.new(@data_source.columns, row)
       @form_view = FormView.new(@form_state)
+      @form_action = :edit
+      @mode = :form
+    end
+
+    def enter_new_form
+      empty_row = @data_source.columns.each_with_object({}) { |col, h| h[col.key] = "" }
+      @form_state = FormState.new(@data_source.columns, empty_row)
+      @form_view = FormView.new(@form_state, title: " New Record ")
+      @form_action = :create
       @mode = :form
     end
 
@@ -142,14 +155,23 @@ module Ratamin
       @mode = :table
       @form_state = nil
       @form_view = nil
+      @form_action = nil
     end
 
     def save_form
-      idx = @table_view.selected_index
-      return unless idx
+      result = if @form_action == :create
+        @data_source.create_row(@form_state.changes)
+      else
+        idx = @table_view.selected_index
+        return unless idx
+        @data_source.update_row(idx, @form_state.changes)
+      end
 
-      result = @data_source.update_row(idx, @form_state.changes)
       if result.ok?
+        if @form_action == :create
+          @data_source.reload!
+          @table_view.reset_selection
+        end
         exit_form
       else
         @form_state.set_errors(result.errors)

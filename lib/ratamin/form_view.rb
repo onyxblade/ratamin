@@ -2,16 +2,17 @@
 
 module Ratamin
   class FormView
-    attr_reader :state
+    attr_reader :state, :title
 
-    def initialize(state)
+    def initialize(state, title: " Edit Record ")
       @state = state
+      @title = title
     end
 
     def render(tui, frame, area)
       border_style = state.errors? ? {fg: :red} : {fg: :yellow}
       inner_block = tui.block(
-        title: " Edit Record ",
+        title: title,
         borders: [:all],
         border_type: :rounded,
         border_style: border_style
@@ -24,7 +25,6 @@ module Ratamin
       constraints = []
       constraints << RatatuiRuby::Layout::Constraint.length(state.errors.length + 1) if state.errors?
       columns.each { constraints << RatatuiRuby::Layout::Constraint.length(1) }
-      constraints << RatatuiRuby::Layout::Constraint.length(1)
       constraints << RatatuiRuby::Layout::Constraint.fill(1)
 
       regions = RatatuiRuby::Layout::Layout.split(
@@ -85,14 +85,6 @@ module Ratamin
           frame.render_widget(tui.paragraph(text: state.values[i], style: {fg: :dark_gray, modifiers: [:dim]}), value_area)
         end
       end
-
-      help_area = regions[region_idx + columns.length]
-      help_text = if state.mode == :edit
-        " Esc:discard  Enter:confirm  Ctrl+E:editor "
-      else
-        " s:save  h/Esc:back  j/k:navigate  l/Enter:edit  Ctrl+E:editor "
-      end
-      frame.render_widget(tui.paragraph(text: help_text, style: {fg: :dark_gray}), help_area)
 
       render_confirm_dialog(tui, frame, area) if state.mode == :confirm_exit
     end

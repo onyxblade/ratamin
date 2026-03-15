@@ -55,6 +55,22 @@ RSpec.describe Ratamin::ArrayDataSource do
     end
   end
 
+  describe "#create_row" do
+    it "appends a new row" do
+      result = ds.create_row({id: 3, name: "Charlie", bio: "Manager"})
+      expect(result).to be_ok
+      expect(ds.row_count).to eq(3)
+      expect(ds.rows.last[:name]).to eq("Charlie")
+    end
+
+    it "does not share references with the input" do
+      attrs = {id: 3, name: "Charlie"}
+      ds.create_row(attrs)
+      ds.update_row(2, {name: "Modified"})
+      expect(attrs[:name]).to eq("Charlie")
+    end
+  end
+
   describe "#reload!" do
     it "does not raise" do
       expect { ds.reload! }.not_to raise_error

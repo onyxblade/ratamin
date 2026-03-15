@@ -50,6 +50,20 @@ module Ratamin
       @records.length
     end
 
+    def create_row(attributes)
+      record = @scope.klass.new
+      cast_attrs = attributes.transform_keys(&:to_s)
+      record.assign_attributes(cast_attrs)
+
+      if record.save
+        UpdateResult.success
+      else
+        UpdateResult.failure(record.errors.full_messages)
+      end
+    rescue => e
+      UpdateResult.failure("#{e.class}: #{e.message}")
+    end
+
     def update_row(index, changes)
       record = @records[index]
       cast_changes = changes.transform_keys(&:to_s)

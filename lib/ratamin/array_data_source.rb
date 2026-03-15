@@ -22,6 +22,11 @@ module Ratamin
       UpdateResult.success
     end
 
+    def create_row(attributes)
+      @rows << attributes.dup
+      UpdateResult.success
+    end
+
     def reload!
       # no-op for array source
     end
