@@ -20,5 +20,9 @@ module Ratamin
     def paginated?
       false
     end
+
+    def with_silenced_output
+      yield
+    end
   end
 end

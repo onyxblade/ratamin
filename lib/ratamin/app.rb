@@ -13,13 +13,15 @@ module Ratamin
     end
 
     def run
-      RatatuiRuby.run do |tui|
-        loop do
-          tui.draw { |frame| render(tui, frame) }
+      @data_source.with_silenced_output do
+        RatatuiRuby.run do |tui|
+          loop do
+            tui.draw { |frame| render(tui, frame) }
 
-          event = tui.poll_event
-          result = handle_event(event)
-          break if result == :quit
+            event = tui.poll_event
+            result = handle_event(event)
+            break if result == :quit
+          end
         end
       end
     end

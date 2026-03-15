@@ -62,6 +62,14 @@ module Ratamin
       end
     end
 
+    def with_silenced_output
+      old_logger = ActiveRecord::Base.logger
+      ActiveRecord::Base.logger = nil
+      yield
+    ensure
+      ActiveRecord::Base.logger = old_logger
+    end
+
     def reload!
       @total_count = @scope.reset.count
       @page = [[1, @page].max, total_pages].min
