@@ -14,18 +14,47 @@ gem "ratamin"
 
 ## Usage
 
-### With ActiveRecord
+### Rails integration (recommended)
+
+Add the Railtie to an initializer to unlock `Model.ratamin` and `scope.ratamin` across your entire app:
+
+```ruby
+# config/initializers/ratamin.rb
+require "ratamin/railtie"
+```
+
+Then define which columns to show in your model:
+
+```ruby
+class User < ApplicationRecord
+  has_ratamin do
+    column :name, label: "Full Name", width: 20
+    column :email, width: 30
+    column :bio                        # type and editable inferred from schema
+  end
+end
+```
+
+Open the console and run:
+
+```ruby
+User.ratamin                           # all records, newest first
+User.where(role: "admin").ratamin      # filtered scope
+```
+
+Column type (`:text` vs `:string`) and editability (`id`, `created_at`, `updated_at` are read-only by default) are inferred from the schema. Any option explicitly passed to `column` overrides the inferred default.
+
+Without the Railtie, `scope.ratamin` is unavailable. You can still call `User.ratamin` after manually including `Ratamin::ModelMixin` in the model.
+
+### Manual usage (without Railtie)
 
 ```ruby
 require "ratamin"
 
-# Edit all users
+# Columns are inferred from the schema automatically
 Ratamin::App.new(Ratamin::ScopeDataSource.new(User.all)).run
 
-# Edit a filtered scope
-Ratamin::App.new(Ratamin::ScopeDataSource.new(User.where(role: "admin"))).run
-
-# Specify which columns to show
+# Or specify columns explicitly
 columns = [
   Ratamin::Column.new(key: :name, label: "Name", width: 20),
   Ratamin::Column.new(key: :email, label: "Email", width: 30),
