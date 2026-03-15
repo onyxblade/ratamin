@@ -85,19 +85,35 @@ Ratamin::App.new(ds).run
 | `k` / `Up` | Previous row |
 | `g` | First row |
 | `G` | Last row |
-| `Enter` | Edit selected record |
+| `l` / `Enter` | Edit selected record |
 | `r` | Reload data |
-| `q` | Quit |
+| `PageDown` | Next page |
+| `PageUp` | Previous page |
+| `Esc` / `q` | Quit |
 
-### Form view
+### Form view — select mode
 
 | Key | Action |
 |-----|--------|
+| `j` / `Down` | Next field |
+| `k` / `Up` | Previous field |
 | `Tab` | Next field |
 | `Shift+Tab` | Previous field |
-| `Enter` | Save |
-| `Esc` | Cancel |
-| `e` | Open `$EDITOR` (on `:text` fields) |
+| `l` / `Enter` | Edit field |
+| `Ctrl+E` | Open `$EDITOR` |
+| `s` | Save |
+| `h` / `Esc` | Cancel (back to table) |
+
+### Form view — edit mode
+
+| Key | Action |
+|-----|--------|
+| `Enter` | Confirm and move to next field |
+| `Esc` | Discard changes and exit edit |
+| `Ctrl+E` | Open `$EDITOR` |
+| `Left` / `Right` | Move cursor |
+| `Home` / `End` | Jump to start/end |
+| `Backspace` / `Delete` | Delete character |
 
 ## Architecture
 

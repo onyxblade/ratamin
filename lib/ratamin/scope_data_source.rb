@@ -60,6 +60,8 @@ module Ratamin
       else
         UpdateResult.failure(record.errors.full_messages)
       end
+    rescue => e
+      UpdateResult.failure("#{e.class}: #{e.message}")
     end
 
     def with_silenced_output

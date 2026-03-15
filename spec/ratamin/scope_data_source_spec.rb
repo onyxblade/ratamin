@@ -170,6 +170,13 @@ RSpec.describe Ratamin::ScopeDataSource do
       expect(result).to be_failed
       expect(result.errors).to include(match(/Email/))
     end
+
+    it "returns failure with exception message on unexpected error" do
+      allow(ds.send(:instance_variable_get, :@records)[0]).to receive(:save).and_raise(ActiveRecord::StatementInvalid, "PG::Error: column does not exist")
+      result = ds.update_row(0, {"name" => "Alicia"})
+      expect(result).to be_failed
+      expect(result.errors).to include(match(/StatementInvalid/))
+    end
   end
 
   describe "#reload!" do

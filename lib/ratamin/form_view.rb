@@ -88,9 +88,9 @@ module Ratamin
 
       help_area = regions[region_idx + columns.length]
       help_text = if state.mode == :edit
-        " Esc:exit edit  Enter:confirm+next "
+        " Esc:discard  Enter:confirm  Ctrl+E:editor "
       else
-        " s:save  Esc:cancel  j/k:navigate  Enter/i:edit  Ctrl+E:editor "
+        " s:save  h/Esc:back  j/k:navigate  l/Enter:edit  Ctrl+E:editor "
       end
       frame.render_widget(tui.paragraph(text: help_text, style: {fg: :dark_gray}), help_area)
     end

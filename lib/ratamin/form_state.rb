@@ -132,7 +132,6 @@ module Ratamin
         discard_edit
       in {type: :key, code: "enter"}
         @mode = :select
-        next_field
       in {type: :key, code: "e", modifiers: ["ctrl"]}
         return :editor
       in {type: :key, code: "backspace"}

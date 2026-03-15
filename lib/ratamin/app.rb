@@ -64,7 +64,7 @@ module Ratamin
 
     def form_help
       if @form_state&.mode == :edit
-        " Esc:exit edit  Enter:confirm+next "
+        " Esc:discard  Enter:confirm  Ctrl+E:editor "
       else
         " s:save  h/Esc:back  j/k:navigate  l/Enter:edit  Ctrl+E:editor "
       end

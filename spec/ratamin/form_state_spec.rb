@@ -60,14 +60,14 @@ RSpec.describe Ratamin::FormState do
       expect(state.current_value).to eq("Alice")
     end
 
-    it "returns to select mode and advances field on Enter from edit, keeping changes" do
+    it "returns to select mode on Enter from edit, keeping changes" do
       enter_edit_mode
       state.handle_event(key_event("!"))
       expect(state.current_value).to eq("Alice!")
       state.handle_event(key_event("enter"))
       expect(state.mode).to eq(:select)
       expect(state.values[0]).to eq("Alice!")
-      expect(state.field_index).to eq(1)
+      expect(state.field_index).to eq(0)
     end
 
     it "does not enter edit mode on non-editable field" do
