@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-03-15
+
+### Added
+- Create new records with `n` key in table view
+- `create_row(attributes)` method on the `DataSource` protocol
+- Two-mode form UX: select mode (vim-style navigation) and inline edit mode
+- Unsaved changes confirmation dialog when leaving a dirty form
+- Ctrl+E opens `$EDITOR` for any field type (not just `:text`)
+- Vim-style `j`/`k` field navigation in form select mode
+- PageUp/PageDown pagination (replaces `n`/`p`)
+
+### Changed
+- Form title is now dynamic ("New Record" vs "Edit Record")
+- Removed duplicate help text from form body (shown only in status bar)
+- Removed dead code from `TableView#compute_widths`
+
+### Fixed
+- SQL logging no longer interferes with TUI in dev mode (suppressed for entire session)
+- Esc in edit mode now discards field changes (Enter confirms)
+- Save errors display inline instead of crashing
+- Stale in-memory data no longer shown after failed save (record reloaded)
+- Column labels use raw names instead of capitalized
+
 ## [0.2.0] - 2026-03-14
 
 ### Added
@@ -35,6 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - RSpec test suite with in-memory SQLite for ActiveRecord integration tests
 - GitHub Actions CI on Ruby 3.3, 3.4, and 4.0
 
-[Unreleased]: https://github.com/onyxblade/ratamin/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/onyxblade/ratamin/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/onyxblade/ratamin/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/onyxblade/ratamin/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/onyxblade/ratamin/releases/tag/v0.1.0

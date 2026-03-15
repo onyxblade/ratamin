@@ -10,7 +10,7 @@ Steps:
 
 1. **Confirm version**: Read `lib/ratamin/version.rb`. If $ARGUMENTS differs from the current version, update the file.
 
-2. **Bundle**: Run `bundle` to update `Gemfile.lock` with the new version, then commit `lib/ratamin/version.rb` and `Gemfile.lock` together.
+2. **Bundle**: Run `bundle` to update `Gemfile.lock` with the new version.
 
 3. **Run tests**: `bundle exec rspec` — abort if any tests fail.
 
@@ -20,7 +20,7 @@ Steps:
    ### Added / Changed / Fixed
    - ...
    ```
-   Ask the user what to put in the changelog if there is nothing obvious from recent commits. Commit the changelog update.
+   Ask the user what to put in the changelog if there is nothing obvious from recent commits. Commit `lib/ratamin/version.rb`, `Gemfile.lock`, and `CHANGELOG.md` together in a single commit.
 
 5. **Build the gem**: `gem build ratamin.gemspec`
 
