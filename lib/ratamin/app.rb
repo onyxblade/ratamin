@@ -61,7 +61,11 @@ module Ratamin
     end
 
     def form_help
-      " Tab:next field  Shift+Tab:prev  Enter:save  Esc:cancel "
+      if @form_state&.mode == :edit
+        " Esc:exit edit  Enter:confirm+next "
+      else
+        " s:save  Esc:cancel  j/k:navigate  Enter/i:edit  Ctrl+E:editor "
+      end
     end
 
     def handle_event(event)

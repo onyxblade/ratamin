@@ -2,7 +2,7 @@
 
 module Ratamin
   class FormState
-    attr_reader :columns, :values, :field_index, :cursor_positions, :errors
+    attr_reader :columns, :values, :field_index, :cursor_positions, :errors, :mode
 
     def initialize(columns, row)
       @columns = columns
@@ -11,6 +11,7 @@ module Ratamin
       @field_index = first_editable_index || 0
       @cursor_positions = @values.map(&:length)
       @errors = []
+      @mode = :select
     end
 
     def errors?
@@ -26,51 +27,7 @@ module Ratamin
     end
 
     def handle_event(event)
-      # Enter/Esc always work, even when all fields are read-only.
-      case event
-      in {type: :key, code: "enter"}
-        return :save
-      in {type: :key, code: "esc"}
-        return :cancel
-      else
-        nil
-      end
-
-      case event
-      in {type: :key, code: "tab", modifiers: []}
-        return next_field
-      in {type: :key, code: "backtab"} | {type: :key, code: "tab", modifiers: ["shift"]}
-        return prev_field
-      in {type: :key, code: "down"}
-        return next_field
-      in {type: :key, code: "up"}
-        return prev_field
-      else
-        nil
-      end
-
-      return nil unless current_column&.editable
-
-      case event
-      in {type: :key, code: "e", modifiers: ["ctrl"]}
-        return :editor
-      in {type: :key, code: "backspace"}
-        handle_backspace
-      in {type: :key, code: "delete"}
-        handle_delete
-      in {type: :key, code: "left"}
-        move_cursor_left
-      in {type: :key, code: "right"}
-        move_cursor_right
-      in {type: :key, code: "home"}
-        @cursor_positions[@field_index] = 0
-      in {type: :key, code: "end"}
-        @cursor_positions[@field_index] = @values[@field_index].length
-      in {type: :key, code: c, modifiers: []} if c.length == 1
-        insert_char(c)
-      else
-        nil
-      end
+      @mode == :select ? handle_select_event(event) : handle_edit_event(event)
     end
 
     def current_column
@@ -145,6 +102,57 @@ module Ratamin
     end
 
     private
+
+    def handle_select_event(event)
+      case event
+      in {type: :key, code: "esc"}
+        return :cancel
+      in {type: :key, code: "s", modifiers: []}
+        return :save
+      in {type: :key, code: "e", modifiers: ["ctrl"]}
+        return :editor if current_column&.editable
+      in {type: :key, code: "enter"} | {type: :key, code: "i", modifiers: []}
+        @mode = :edit if current_column&.editable
+      in {type: :key, code: "j", modifiers: []} | {type: :key, code: "down"}
+        next_field
+      in {type: :key, code: "k", modifiers: []} | {type: :key, code: "up"}
+        prev_field
+      in {type: :key, code: "tab", modifiers: []}
+        next_field
+      in {type: :key, code: "backtab"} | {type: :key, code: "tab", modifiers: ["shift"]}
+        prev_field
+      else
+        nil
+      end
+    end
+
+    def handle_edit_event(event)
+      case event
+      in {type: :key, code: "esc"}
+        @mode = :select
+      in {type: :key, code: "enter"}
+        @mode = :select
+        next_field
+      in {type: :key, code: "e", modifiers: ["ctrl"]}
+        return :editor
+      in {type: :key, code: "backspace"}
+        handle_backspace
+      in {type: :key, code: "delete"}
+        handle_delete
+      in {type: :key, code: "left"}
+        move_cursor_left
+      in {type: :key, code: "right"}
+        move_cursor_right
+      in {type: :key, code: "home"}
+        @cursor_positions[@field_index] = 0
+      in {type: :key, code: "end"}
+        @cursor_positions[@field_index] = @values[@field_index].length
+      in {type: :key, code: c, modifiers: []} if c.length == 1
+        insert_char(c)
+      else
+        nil
+      end
+    end
 
     def any_editable?
       columns.any?(&:editable)

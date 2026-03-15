@@ -22,13 +22,8 @@ module Ratamin
       columns = state.columns
 
       constraints = []
-      # Error lines
-      if state.errors?
-        constraints << RatatuiRuby::Layout::Constraint.length(state.errors.length + 1)
-      end
-      # Field rows
+      constraints << RatatuiRuby::Layout::Constraint.length(state.errors.length + 1) if state.errors?
       columns.each { constraints << RatatuiRuby::Layout::Constraint.length(1) }
-      # Help line + spacer
       constraints << RatatuiRuby::Layout::Constraint.length(1)
       constraints << RatatuiRuby::Layout::Constraint.fill(1)
 
@@ -40,11 +35,9 @@ module Ratamin
 
       region_idx = 0
 
-      # Render errors if present
       if state.errors?
         error_text = state.errors.map { |e| " ! #{e}" }.join("\n")
-        error_widget = tui.paragraph(text: error_text, style: {fg: :red, modifiers: [:bold]})
-        frame.render_widget(error_widget, regions[region_idx])
+        frame.render_widget(tui.paragraph(text: error_text, style: {fg: :red, modifiers: [:bold]}), regions[region_idx])
         region_idx += 1
       end
 
@@ -52,10 +45,11 @@ module Ratamin
 
       columns.each_with_index do |col, i|
         field_area = regions[region_idx + i]
-        label_area, value_area = RatatuiRuby::Layout::Layout.split(
+        marker_area, label_area, value_area = RatatuiRuby::Layout::Layout.split(
           field_area,
           direction: :horizontal,
           constraints: [
+            RatatuiRuby::Layout::Constraint.length(2),
             RatatuiRuby::Layout::Constraint.length(label_width),
             RatatuiRuby::Layout::Constraint.fill(1)
           ]
@@ -64,7 +58,12 @@ module Ratamin
         active = i == state.field_index
 
         if col.editable
+          in_edit = active && state.mode == :edit
+          marker = active ? (in_edit ? "» " : "> ") : "  "
+          marker_style = active ? {fg: :yellow} : {fg: :dark_gray}
           label_style = active ? {fg: :yellow, modifiers: [:bold]} : {fg: :dark_gray}
+
+          frame.render_widget(tui.paragraph(text: marker, style: marker_style), marker_area)
           frame.render_widget(tui.paragraph(text: "#{col.label}: ", style: label_style), label_area)
 
           display_value = if col.type == :text && state.values[i].length > 40
@@ -73,25 +72,27 @@ module Ratamin
             state.values[i]
           end
 
-          value_style = active ? {fg: :white, modifiers: [:underlined]} : {fg: :gray}
+          value_style = in_edit ? {fg: :white, modifiers: [:underlined]} : (active ? {fg: :yellow} : {fg: :gray})
           frame.render_widget(tui.paragraph(text: display_value, style: value_style), value_area)
 
-          if active && !(col.type == :text && state.values[i].length > 40)
+          if in_edit && !(col.type == :text && state.values[i].length > 40)
             cursor_x = value_area.x + [state.cursor_positions[i], value_area.width - 1].min
             frame.set_cursor_position(cursor_x, value_area.y)
           end
         else
+          frame.render_widget(tui.paragraph(text: "  ", style: {fg: :dark_gray}), marker_area)
           frame.render_widget(tui.paragraph(text: "#{col.label}: ", style: {fg: :dark_gray}), label_area)
           frame.render_widget(tui.paragraph(text: state.values[i], style: {fg: :dark_gray, modifiers: [:dim]}), value_area)
         end
       end
 
       help_area = regions[region_idx + columns.length]
-      help = tui.paragraph(
-        text: " ↑↓/Tab:navigate  Enter:save  Esc:cancel  Ctrl+E:editor ",
-        style: {fg: :dark_gray}
-      )
-      frame.render_widget(help, help_area)
+      help_text = if state.mode == :edit
+        " Esc:exit edit  Enter:confirm+next "
+      else
+        " s:save  Esc:cancel  j/k:navigate  Enter/i:edit  Ctrl+E:editor "
+      end
+      frame.render_widget(tui.paragraph(text: help_text, style: {fg: :dark_gray}), help_area)
     end
   end
 end
