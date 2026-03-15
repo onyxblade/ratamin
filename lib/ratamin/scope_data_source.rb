@@ -77,7 +77,7 @@ module Ratamin
     def ordered_scope
       s = @scope.reset
       if s.order_values.empty?
-        s.order(s.klass.arel_table[s.klass.primary_key])
+        s.order(s.klass.arel_table[s.klass.primary_key].desc)
       else
         s
       end
@@ -93,6 +93,10 @@ module Ratamin
 
     def infer_columns
       model = @scope.klass
+      if model.respond_to?(:ratamin_config) && (config = model.ratamin_config)
+        return config.columns
+      end
+
       model.column_names.map do |name|
         col = model.columns_hash[name]
         Column.new(

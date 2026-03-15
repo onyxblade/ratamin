@@ -30,7 +30,7 @@ RSpec.describe Ratamin::ScopeDataSource do
 
     it "loads rows from the scope" do
       expect(ds.row_count).to eq(3)
-      expect(ds.rows[0][:name]).to eq("Alice")
+      expect(ds.rows[0][:name]).to eq("Charlie")
     end
 
     it "marks id as non-editable" do
@@ -48,6 +48,39 @@ RSpec.describe Ratamin::ScopeDataSource do
     it "marks regular columns as editable" do
       name_col = ds.columns.find { |c| c.key == :name }
       expect(name_col.editable).to be true
+    end
+  end
+
+  describe "with model config (has_ratamin)" do
+    around do |example|
+      User.include(Ratamin::ModelMixin)
+      User.has_ratamin do
+        column :name, label: "Full Name", width: 20
+        column :email, width: 30
+      end
+      example.run
+      User.instance_variable_set(:@ratamin_config, nil)
+    end
+
+    subject(:ds) { described_class.new(User.all) }
+
+    it "uses columns from model config" do
+      expect(ds.columns.map(&:key)).to eq(%i[name email])
+    end
+
+    it "respects label from config" do
+      col = ds.columns.find { |c| c.key == :name }
+      expect(col.label).to eq("Full Name")
+    end
+
+    it "only includes configured columns in rows" do
+      expect(ds.rows[0].keys).to eq(%i[name email])
+    end
+
+    it "falls back to infer when config is absent" do
+      User.instance_variable_set(:@ratamin_config, nil)
+      ds2 = described_class.new(User.all)
+      expect(ds2.columns.map(&:key)).to include(:id, :name, :email, :bio)
     end
   end
 
@@ -148,7 +181,7 @@ RSpec.describe Ratamin::ScopeDataSource do
     it "navigates to next page" do
       ds.next_page
       expect(ds.page).to eq(2)
-      expect(ds.rows[0][:name]).to eq("User 3")
+      expect(ds.rows[0][:name]).to eq("User 6")
     end
 
     it "navigates to previous page" do
@@ -178,7 +211,7 @@ RSpec.describe Ratamin::ScopeDataSource do
     it "go_to_page jumps directly" do
       ds.go_to_page(3)
       expect(ds.page).to eq(3)
-      expect(ds.rows[0][:name]).to eq("User 6")
+      expect(ds.rows[0][:name]).to eq("User 3")
     end
 
     it "clamps go_to_page to valid range" do
